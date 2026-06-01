@@ -311,6 +311,18 @@ Next pivot:
 Run censys_lookup on each sibling IP, then compare certificates, JARM, page title, and ASN for campaign clustering.
 ```
 
+## Example Investigation Output
+
+The screenshots below show a rendered MCP client report from `investigate_indicator({"indicator":"207.90.244.12"})`, including normalized source evidence, infrastructure context, analyst notes, and hunt actions.
+
+<p align="center">
+  <img src="docs/assets/example-investigation-overview.png" alt="Threat intelligence MCP investigation report overview for 207.90.244.12" width="645">
+</p>
+
+<p align="center">
+  <img src="docs/assets/example-investigation-analysis.png" alt="Threat intelligence MCP analyst notes and recommended hunt actions" width="620">
+</p>
+
 ## Security Notes
 
 - `MCP_SHARED_SECRET` is required. If it is missing, `/mcp` fails closed so the Worker does not become an open proxy to paid API quotas.
