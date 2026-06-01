@@ -104,7 +104,16 @@ export default {
 
 function authorizeRequest(request: Request, env: Env): Response | null {
   if (!env.MCP_SHARED_SECRET) {
-    return null;
+    return Response.json(
+      {
+        error: "mcp_shared_secret_required",
+        message:
+          "MCP_SHARED_SECRET is not configured; refusing to expose MCP tools.",
+      },
+      {
+        status: 503,
+      },
+    );
   }
 
   const expected = `Bearer ${env.MCP_SHARED_SECRET}`;
@@ -121,7 +130,7 @@ function authorizeRequest(request: Request, env: Env): Response | null {
     {
       status: 401,
       headers: {
-        "www-authenticate": 'Bearer realm="mcp-threat-intelligence"',
+        "www-authenticate": 'Bearer realm="mcp-threat-intel"',
       },
     },
   );
@@ -141,4 +150,3 @@ function jsonToolResult(value: unknown) {
     ],
   };
 }
-

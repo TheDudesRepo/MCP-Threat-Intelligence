@@ -79,7 +79,7 @@ The MCP endpoint will be:
 http://localhost:8787/mcp
 ```
 
-If `MCP_SHARED_SECRET` is set, clients must send:
+Clients must send:
 
 ```text
 Authorization: Bearer <MCP_SHARED_SECRET>
@@ -111,7 +111,7 @@ Use the remote Streamable HTTP URL:
 https://mcp-threat-intel.<your-subdomain>.workers.dev/mcp
 ```
 
-Add an `Authorization` header if `MCP_SHARED_SECRET` is set.
+Add the `Authorization` header with your `MCP_SHARED_SECRET` value.
 
 ### Cloudflare AI Playground
 
@@ -121,7 +121,7 @@ Open the Cloudflare AI Playground, add a remote MCP server, and use:
 https://mcp-threat-intel.<your-subdomain>.workers.dev/mcp
 ```
 
-Set the bearer token header if the shared secret is enabled.
+Set the bearer token header with your `MCP_SHARED_SECRET` value.
 
 ### Claude Desktop via mcp-remote
 
@@ -153,7 +153,7 @@ Use the same JSON on each OS:
 }
 ```
 
-Keep `Authorization:${AUTH_HEADER}` exactly as shown. Put your real shared secret in `AUTH_HEADER` with the `Bearer ` prefix, for example `Bearer my-demo-secret-123`. Restart Claude Desktop after editing the config.
+Keep `Authorization:${AUTH_HEADER}` exactly as shown. Put your real shared secret in `AUTH_HEADER` with the `Bearer ` prefix. Restart Claude Desktop after editing the config.
 
 ### Claude Code
 
@@ -247,7 +247,7 @@ Run censys_lookup on each sibling IP, then compare certificates, JARM, page titl
 
 ## Security Notes
 
-- This demo is not authless by default when `MCP_SHARED_SECRET` is configured. Keep it enabled to avoid creating an open proxy to paid API quotas.
+- `MCP_SHARED_SECRET` is required. If it is missing, `/mcp` fails closed so the Worker does not become an open proxy to paid API quotas.
 - Secrets must be set with Wrangler or Cloudflare dashboard secrets. Never commit real API keys.
 - Each external query emits a structured audit log line with source, indicator, timestamp, status, and HTTP status where available.
 - API errors and rate limits are returned as structured JSON so the agent can explain partial results and continue with other sources.
