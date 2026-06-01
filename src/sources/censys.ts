@@ -528,8 +528,9 @@ function toBearer(token: string): string {
 
 function addOrgId(env: Env, endpoint: string): string {
   const url = new URL(endpoint);
-  if (env.CENSYS_ORG_ID) {
-    url.searchParams.set("organization_id", env.CENSYS_ORG_ID);
+  const orgId = env.CENSYS_ORG_ID?.trim();
+  if (env.CENSYS_USE_ORG_ID?.toLowerCase() === "true" && orgId) {
+    url.searchParams.set("organization_id", orgId);
   }
   return url.toString();
 }
@@ -569,4 +570,3 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 function asRecord(value: unknown): Record<string, unknown> | undefined {
   return isRecord(value) ? value : undefined;
 }
-

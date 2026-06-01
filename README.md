@@ -55,11 +55,25 @@ Set secrets in Cloudflare with Wrangler:
 npx wrangler secret put VT_API_KEY
 npx wrangler secret put URLSCAN_API_KEY
 npx wrangler secret put CENSYS_API_TOKEN
-npx wrangler secret put CENSYS_ORG_ID
 npx wrangler secret put MCP_SHARED_SECRET
 ```
 
 Censys currently documents the Platform API under `https://api.platform.censys.io/v3/` with bearer-token authentication. If your account still has older API ID/secret credentials, create a current Censys Platform personal access token and use it as `CENSYS_API_TOKEN`.
+
+For free Censys accounts, do not set `CENSYS_ORG_ID`; the Worker omits `organization_id` by default. If you have a paid/enterprise Censys account that requires an organization ID, set both:
+
+```powershell
+npx wrangler secret put CENSYS_ORG_ID
+npx wrangler secret put CENSYS_USE_ORG_ID
+```
+
+Use `true` as the value for `CENSYS_USE_ORG_ID`.
+
+If you previously set `CENSYS_ORG_ID` for a free account, remove it to keep the Cloudflare secret list clean:
+
+```powershell
+npx wrangler secret delete CENSYS_ORG_ID
+```
 
 Optional cache:
 
