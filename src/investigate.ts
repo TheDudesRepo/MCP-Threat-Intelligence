@@ -1,5 +1,6 @@
 import { parseIndicator } from "./lib/indicators";
 import { makeSourceResult } from "./lib/results";
+import { lookupCloudflareUrlScan } from "./sources/cloudflare";
 import {
   findCensysSiblings,
   getCensysHostSummary,
@@ -34,9 +35,17 @@ export async function investigateIndicator(
     const urlscan = await lookupUrlscan(env, parsed.normalized);
     normalizedSources.push(urlscan);
     evidenceChain.push(summarizeSource(urlscan));
+
+    const cloudflare = await lookupCloudflareUrlScan(env, parsed.normalized);
+    normalizedSources.push(cloudflare);
+    evidenceChain.push(summarizeSource(cloudflare));
   }
 
-  const pivotIps = collectPivotIps(parsed.normalized, parsed.indicator_type, vt);
+  const pivotIps = collectPivotIps(
+    parsed.normalized,
+    parsed.indicator_type,
+    normalizedSources,
+  );
   if (pivotIps.length > 0) {
     evidenceChain.push(
       `Pivoting to Censys host enrichment for ${pivotIps.slice(0, 3).join(", ")}.`,
@@ -128,18 +137,34 @@ export async function investigateIndicator(
 function collectPivotIps(
   normalized: string,
   type: string,
-  vt: NormalizedSourceResult,
+  sources: NormalizedSourceResult[],
 ): string[] {
   const ips = new Set<string>();
   if (type === "ip") {
     ips.add(normalized);
   }
 
-  const resolutions = vt.details?.resolutions;
-  if (Array.isArray(resolutions)) {
-    for (const resolution of resolutions) {
-      if (isRecord(resolution) && typeof resolution.ip_address === "string") {
-        ips.add(resolution.ip_address);
+  for (const source of sources) {
+    const resolutions = source.details?.resolutions;
+    if (Array.isArray(resolutions)) {
+      for (const resolution of resolutions) {
+        if (isRecord(resolution) && typeof resolution.ip_address === "string") {
+          ips.add(resolution.ip_address);
+        }
+      }
+    }
+
+    const primaryIp = source.details?.primary_ip;
+    if (typeof primaryIp === "string") {
+      ips.add(primaryIp);
+    }
+
+    const contactedIps = source.details?.contacted_ips;
+    if (Array.isArray(contactedIps)) {
+      for (const ip of contactedIps) {
+        if (typeof ip === "string") {
+          ips.add(ip);
+        }
       }
     }
   }
@@ -219,4 +244,3 @@ function summarizeSource(source: NormalizedSourceResult): string {
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
-

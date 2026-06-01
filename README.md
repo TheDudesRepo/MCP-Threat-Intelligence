@@ -14,8 +14,9 @@ Tools exposed at `/mcp`:
 
 - `virustotal_lookup(indicator)`: auto-detects domain, IP, URL, or file hash; returns reputation, vendor detections, categories, and domain resolutions.
 - `urlscan_lookup(url_or_domain)`: searches existing scans; returns verdict, title, final URL, screenshot link, contacted IPs, and contacted domains.
+- `cloudflare_urlscan_lookup(url_or_domain, submit_scan?)`: searches Cloudflare Radar URL Scanner reports and optionally submits a new unlisted scan; returns verdict, final URL, primary IP/ASN, contacted IPs/domains, categories, hashes, and report link.
 - `censys_lookup(ip_or_domain)`: returns host ports/services, TLS certificate details, JARM, ASN, and geolocation using the current Censys Platform API. Free Censys accounts can use direct IP host lookups; domain search requires paid/organization API access.
-- `investigate_indicator(indicator)`: orchestrates the sources, pivots VirusTotal domain resolutions into Censys direct IP host enrichment when possible, runs paid/org Censys sibling pivots when enabled, checks hosted content in urlscan, and returns one normalized correlated summary.
+- `investigate_indicator(indicator)`: orchestrates the sources, pivots VirusTotal and Cloudflare Radar IP evidence into Censys direct IP host enrichment when possible, runs paid/org Censys sibling pivots when enabled, checks hosted content in urlscan/Radar, and returns one normalized correlated summary.
 
 Every source result normalizes to:
 
@@ -54,9 +55,21 @@ Set secrets in Cloudflare with Wrangler:
 ```powershell
 npx wrangler secret put VT_API_KEY
 npx wrangler secret put URLSCAN_API_KEY
+npx wrangler secret put CLOUDFLARE_ACCOUNT_ID
+npx wrangler secret put CLOUDFLARE_URL_SCANNER_TOKEN
 npx wrangler secret put CENSYS_API_TOKEN
 npx wrangler secret put MCP_SHARED_SECRET
 ```
+
+CLOUDFLARE_URL_SCANNER_TOKEN should be a Cloudflare API token with Account > URL Scanner permission. The account ID is not a password, but keep it in Cloudflare secrets instead of `wrangler.jsonc` so the public repo does not disclose account metadata.
+
+Cloudflare Radar URL Scanner uses `Unlisted` visibility by default in this Worker when submitting a new scan. Do not set it to `Public` unless you intentionally want submitted URLs to appear in recent scans and search results. To override it:
+
+```powershell
+npx wrangler secret put CLOUDFLARE_URL_SCAN_VISIBILITY
+```
+
+Use `Unlisted` or `Public` as the value.
 
 Censys currently documents the Platform API under `https://api.platform.censys.io/v3/` with bearer-token authentication. If your account still has older API ID/secret credentials, create a current Censys Platform personal access token and use it as `CENSYS_API_TOKEN`.
 
@@ -138,6 +151,16 @@ https://mcp-threat-intel.<your-subdomain>.workers.dev/mcp
 ```
 
 Set the bearer token header with your `MCP_SHARED_SECRET` value.
+
+### Cloudflare Radar MCP Server
+
+Cloudflare also runs an official Radar MCP server:
+
+```text
+https://radar.mcp.cloudflare.com/mcp
+```
+
+Use it directly when you want general Radar trends, insights, and URL scan utilities in a client. This Worker integrates the underlying URL Scanner API directly so its results can be normalized and correlated with VirusTotal, urlscan.io, and Censys in `investigate_indicator`.
 
 ### Claude Desktop via mcp-remote
 
@@ -254,8 +277,9 @@ Evidence chain:
 1. Input refanged to https://login-example.com/ and classified as url.
 2. VirusTotal found suspicious vendor detections and recent resolutions to 203.0.113.44.
 3. urlscan found a login-themed page title, final URL, screenshot, and contacted domains.
-4. Censys enriched 203.0.113.44 with ports 80 and 443, a TLS certificate, JARM fingerprint, ASN, and geolocation.
-5. Censys JARM and certificate pivots surfaced sibling IPs 203.0.113.45 and 203.0.113.46.
+4. Cloudflare Radar confirmed the final URL, primary IP, contacted domains, categories, and malicious verdict metadata.
+5. Censys enriched 203.0.113.44 with ports 80 and 443, a TLS certificate, JARM fingerprint, ASN, and geolocation.
+6. Censys JARM and certificate pivots surfaced sibling IPs 203.0.113.45 and 203.0.113.46.
 
 Next pivot:
 Run censys_lookup on each sibling IP, then compare certificates, JARM, page title, and ASN for campaign clustering.

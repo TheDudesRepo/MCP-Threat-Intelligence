@@ -1,6 +1,10 @@
 interface Env {
   VT_API_KEY?: string;
   URLSCAN_API_KEY?: string;
+  CLOUDFLARE_ACCOUNT_ID?: string;
+  CLOUDFLARE_API_TOKEN?: string;
+  CLOUDFLARE_URL_SCANNER_TOKEN?: string;
+  CLOUDFLARE_URL_SCAN_VISIBILITY?: string;
   CENSYS_API_ID?: string;
   CENSYS_API_TOKEN?: string;
   CENSYS_PLATFORM_TOKEN?: string;

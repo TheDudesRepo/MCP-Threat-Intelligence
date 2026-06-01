@@ -2,6 +2,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { createMcpHandler } from "agents/mcp";
 import { z } from "zod";
 import { investigateIndicator } from "./investigate";
+import { lookupCloudflareUrlScan } from "./sources/cloudflare";
 import { lookupCensys } from "./sources/censys";
 import { lookupUrlscan } from "./sources/urlscan";
 import { lookupVirusTotal } from "./sources/virustotal";
@@ -37,6 +38,27 @@ function createServer(env: Env): McpServer {
     },
     async ({ url_or_domain }) =>
       jsonToolResult(await lookupUrlscan(env, url_or_domain)),
+  );
+
+  server.tool(
+    "cloudflare_urlscan_lookup",
+    "Search existing Cloudflare Radar URL Scanner reports for a URL, domain, or IP. Optionally submit a new unlisted scan when no report is found. Returns verdict, final URL, primary IP/ASN, contacted IPs/domains, categories, hashes, and a Radar report link.",
+    {
+      url_or_domain: z
+        .string()
+        .min(1)
+        .describe("A URL, domain, IP, or defanged URL/domain to search in Cloudflare Radar URL Scanner."),
+      submit_scan: z
+        .boolean()
+        .optional()
+        .describe("Submit a new unlisted Cloudflare URL scan if no existing scan report is found. Defaults to false."),
+    },
+    async ({ url_or_domain, submit_scan }) =>
+      jsonToolResult(
+        await lookupCloudflareUrlScan(env, url_or_domain, {
+          submitScan: submit_scan === true,
+        }),
+      ),
   );
 
   server.tool(

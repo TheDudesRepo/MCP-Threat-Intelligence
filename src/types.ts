@@ -1,6 +1,11 @@
 export type IndicatorType = "domain" | "ip" | "url" | "file_hash" | "unknown";
 
-export type SourceName = "virustotal" | "urlscan" | "censys" | "correlation";
+export type SourceName =
+  | "virustotal"
+  | "urlscan"
+  | "censys"
+  | "cloudflare_radar"
+  | "correlation";
 
 export type Verdict =
   | "malicious"
