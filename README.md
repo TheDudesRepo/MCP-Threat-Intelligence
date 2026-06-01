@@ -162,6 +162,32 @@ https://radar.mcp.cloudflare.com/mcp
 
 Use it directly when you want general Radar trends, insights, and URL scan utilities in a client. This Worker integrates the underlying URL Scanner API directly so its results can be normalized and correlated with VirusTotal, urlscan.io, and Censys in `investigate_indicator`.
 
+### Cloudflare API MCP Server
+
+Cloudflare also provides a broad MCP server for the full Cloudflare API:
+
+```text
+https://mcp.cloudflare.com/mcp
+```
+
+This server uses a token-efficient Code Mode pattern with two tools, `search` and `execute`, instead of exposing thousands of native tools. Connect it as a separate MCP server when you want an agent to inspect or manage Cloudflare account resources such as Workers, DNS, logs, R2, D1, Access, or URL Scanner APIs.
+
+Use OAuth when possible:
+
+```json
+{
+  "mcpServers": {
+    "cloudflare-api": {
+      "url": "https://mcp.cloudflare.com/mcp"
+    }
+  }
+}
+```
+
+For automation, use a tightly scoped Cloudflare API token as a bearer token. Do not reuse `CLOUDFLARE_URL_SCANNER_TOKEN` unless you intentionally want that MCP server limited to URL Scanner permissions.
+
+This threat-intel Worker does not proxy the broad Cloudflare API MCP server. Keeping it separate avoids giving the investigation tools general Cloudflare account control.
+
 ### Claude Desktop via mcp-remote
 
 Edit the Claude Desktop config file for your OS:
