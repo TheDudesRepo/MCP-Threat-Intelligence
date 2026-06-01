@@ -14,8 +14,8 @@ Tools exposed at `/mcp`:
 
 - `virustotal_lookup(indicator)`: auto-detects domain, IP, URL, or file hash; returns reputation, vendor detections, categories, and domain resolutions.
 - `urlscan_lookup(url_or_domain)`: searches existing scans; returns verdict, title, final URL, screenshot link, contacted IPs, and contacted domains.
-- `censys_lookup(ip_or_domain)`: returns host ports/services, TLS certificate details, JARM, ASN, and geolocation using the current Censys Platform API.
-- `investigate_indicator(indicator)`: orchestrates the sources, pivots domain resolutions into Censys host enrichment, runs JARM/certificate sibling pivots, checks hosted content in urlscan, and returns one normalized correlated summary.
+- `censys_lookup(ip_or_domain)`: returns host ports/services, TLS certificate details, JARM, ASN, and geolocation using the current Censys Platform API. Free Censys accounts can use direct IP host lookups; domain search requires paid/organization API access.
+- `investigate_indicator(indicator)`: orchestrates the sources, pivots VirusTotal domain resolutions into Censys direct IP host enrichment when possible, runs paid/org Censys sibling pivots when enabled, checks hosted content in urlscan, and returns one normalized correlated summary.
 
 Every source result normalizes to:
 
@@ -60,7 +60,9 @@ npx wrangler secret put MCP_SHARED_SECRET
 
 Censys currently documents the Platform API under `https://api.platform.censys.io/v3/` with bearer-token authentication. If your account still has older API ID/secret credentials, create a current Censys Platform personal access token and use it as `CENSYS_API_TOKEN`.
 
-For free Censys accounts, do not set `CENSYS_ORG_ID`; the Worker omits `organization_id` by default. If you have a paid/enterprise Censys account that requires an organization ID, set both:
+For free Censys accounts, do not set `CENSYS_ORG_ID`; the Worker omits `organization_id` by default. In this mode, Censys works for direct IP host lookups and for investigations where VirusTotal provides resolved IPs to pivot into Censys. Censys domain search and sibling-infrastructure pivots use the Platform search API and require paid/organization API access.
+
+If you have a paid/enterprise Censys account that requires an organization ID, set both:
 
 ```powershell
 npx wrangler secret put CENSYS_ORG_ID

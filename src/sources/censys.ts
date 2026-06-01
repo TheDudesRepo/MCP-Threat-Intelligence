@@ -64,6 +64,16 @@ export async function lookupCensys(
 
   const indicatorType =
     parsed.indicator_type === "url" ? "domain" : parsed.indicator_type;
+
+  if (indicatorType === "domain" && !canUseCensysSearch(env)) {
+    return skippedResult(
+      "censys",
+      lookupValue,
+      "domain",
+      "Censys free API access supports direct asset lookups such as IP host lookup, but this domain-to-host search requires paid/organization API access. Set CENSYS_USE_ORG_ID=true with CENSYS_ORG_ID to enable Censys search.",
+    );
+  }
+
   const key = cacheKey("censys", `${indicatorType}:${lookupValue}`);
   const cached = await getCached<NormalizedSourceResult>(env, key);
   if (cached) {
@@ -85,7 +95,7 @@ export async function findCensysSiblings(
   rootIndicator: string,
 ): Promise<Array<Record<string, unknown>>> {
   const token = getCensysToken(env);
-  if (!token) {
+  if (!token || !canUseCensysSearch(env)) {
     return [];
   }
 
@@ -528,11 +538,17 @@ function toBearer(token: string): string {
 
 function addOrgId(env: Env, endpoint: string): string {
   const url = new URL(endpoint);
-  const orgId = env.CENSYS_ORG_ID?.trim();
-  if (env.CENSYS_USE_ORG_ID?.toLowerCase() === "true" && orgId) {
-    url.searchParams.set("organization_id", orgId);
+  if (canUseCensysSearch(env)) {
+    url.searchParams.set("organization_id", env.CENSYS_ORG_ID!.trim());
   }
   return url.toString();
+}
+
+function canUseCensysSearch(env: Env): boolean {
+  return (
+    env.CENSYS_USE_ORG_ID?.toLowerCase() === "true" &&
+    Boolean(env.CENSYS_ORG_ID?.trim())
+  );
 }
 
 function excludeSelf(ips: string[], self: string | undefined): string[] {

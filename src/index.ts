@@ -41,7 +41,7 @@ function createServer(env: Env): McpServer {
 
   server.tool(
     "censys_lookup",
-    "Enrich an IP address or domain with Censys Platform host context including open ports, services, TLS certificate details, JARM, ASN, and geolocation.",
+    "Enrich an IP address with Censys Platform host context including open ports, services, TLS certificate details, JARM, ASN, and geolocation. Domain search requires paid/organization Censys API access; free accounts can use direct IP host lookup.",
     {
       ip_or_domain: z
         .string()
