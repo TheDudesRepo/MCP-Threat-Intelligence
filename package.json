@@ -1,0 +1,28 @@
+{
+  "name": "mcp-threat-intelligence",
+  "version": "0.1.0",
+  "description": "Stateless Cloudflare Workers MCP server for multi-source threat intelligence enrichment.",
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "wrangler deploy --dry-run --outdir dist",
+    "deploy": "wrangler deploy",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.26.0",
+    "agents": "^0.13.3",
+    "zod": "^4.1.8"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "latest",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4",
+    "wrangler": "latest"
+  },
+  "license": "MIT"
+}

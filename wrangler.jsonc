@@ -1,0 +1,19 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "mcp-threat-intelligence",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-06-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": {
+    "enabled": true
+  },
+
+  // Optional cache binding. Create a KV namespace, uncomment this block, and set
+  // ENABLE_CACHE=true when you want repeat lookups cached.
+  // "kv_namespaces": [
+  //   {
+  //     "binding": "TI_CACHE",
+  //     "id": "<kv-namespace-id>"
+  //   }
+  // ]
+}
