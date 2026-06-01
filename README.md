@@ -94,7 +94,7 @@ npx wrangler deploy
 After deploy, the endpoint is:
 
 ```text
-https://mcp-threat-intelligence.<your-subdomain>.workers.dev/mcp
+https://mcp-threat-intel.<your-subdomain>.workers.dev/mcp
 ```
 
 ## Connect
@@ -108,7 +108,7 @@ npx @modelcontextprotocol/inspector
 Use the remote Streamable HTTP URL:
 
 ```text
-https://mcp-threat-intelligence.<your-subdomain>.workers.dev/mcp
+https://mcp-threat-intel.<your-subdomain>.workers.dev/mcp
 ```
 
 Add an `Authorization` header if `MCP_SHARED_SECRET` is set.
@@ -118,14 +118,20 @@ Add an `Authorization` header if `MCP_SHARED_SECRET` is set.
 Open the Cloudflare AI Playground, add a remote MCP server, and use:
 
 ```text
-https://mcp-threat-intelligence.<your-subdomain>.workers.dev/mcp
+https://mcp-threat-intel.<your-subdomain>.workers.dev/mcp
 ```
 
 Set the bearer token header if the shared secret is enabled.
 
 ### Claude Desktop via mcp-remote
 
-Edit `%APPDATA%\Claude\claude_desktop_config.json` on Windows:
+Edit the Claude Desktop config file for your OS:
+
+- Windows: `%APPDATA%\Claude\claude_desktop_config.json`
+- macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- Linux: `~/.config/Claude/claude_desktop_config.json`
+
+Use the same JSON on each OS:
 
 ```json
 {
@@ -135,7 +141,7 @@ Edit `%APPDATA%\Claude\claude_desktop_config.json` on Windows:
       "args": [
         "-y",
         "mcp-remote",
-        "https://mcp-threat-intelligence.<your-subdomain>.workers.dev/mcp",
+        "https://mcp-threat-intel.<your-subdomain>.workers.dev/mcp",
         "--header",
         "Authorization:${AUTH_HEADER}"
       ],
@@ -147,7 +153,67 @@ Edit `%APPDATA%\Claude\claude_desktop_config.json` on Windows:
 }
 ```
 
-Restart Claude Desktop after editing the config.
+Keep `Authorization:${AUTH_HEADER}` exactly as shown. Put your real shared secret in `AUTH_HEADER` with the `Bearer ` prefix, for example `Bearer my-demo-secret-123`. Restart Claude Desktop after editing the config.
+
+### Claude Code
+
+Claude Code can connect directly to remote HTTP MCP servers:
+
+```bash
+claude mcp add --transport http --scope user threat-intel \
+  https://mcp-threat-intel.<your-subdomain>.workers.dev/mcp \
+  --header "Authorization: Bearer <MCP_SHARED_SECRET>"
+```
+
+Verify it:
+
+```bash
+claude mcp list
+```
+
+Inside Claude Code, run:
+
+```text
+/mcp
+```
+
+If you prefer a project-scoped config instead of a user-scoped server, omit `--scope user` from the add command while you are in that project.
+
+### Codex CLI
+
+Codex reads MCP server config from `~/.codex/config.toml` for user-wide setup, or `.codex/config.toml` for a trusted project-scoped setup. Use `bearer_token_env_var`; Codex adds the `Authorization: Bearer ...` header for you.
+
+Add this to `~/.codex/config.toml`:
+
+```toml
+[mcp_servers.threat-intel]
+url = "https://mcp-threat-intel.<your-subdomain>.workers.dev/mcp"
+bearer_token_env_var = "MCP_SHARED_SECRET"
+```
+
+Then set the environment variable before starting Codex.
+
+macOS/Linux:
+
+```bash
+export MCP_SHARED_SECRET="<MCP_SHARED_SECRET>"
+codex
+```
+
+Windows PowerShell:
+
+```powershell
+$env:MCP_SHARED_SECRET = "<MCP_SHARED_SECRET>"
+codex
+```
+
+Verify it inside Codex:
+
+```text
+/mcp
+```
+
+For Codex, the environment variable is just the raw shared secret. Do not include `Bearer ` when using `bearer_token_env_var`.
 
 ## Sample Investigation Transcript
 
@@ -216,4 +282,3 @@ Then in Cloudflare:
 4. Use `npm install` as the install command.
 5. Use `npm run deploy` or `npx wrangler deploy` as the deploy command, depending on the Git integration UI.
 6. Add the Worker secrets listed above before enabling production deploys.
-
